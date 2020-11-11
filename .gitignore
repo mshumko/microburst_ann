@@ -2,3 +2,4 @@ __pycache__/
 env/
 config.py
 .DS_Store
+microburst_ann.egg-info/
