@@ -8,7 +8,7 @@ from datetime import datetime, date
 import pandas as pd
 import numpy as np
 
-from sampex_microburst_widths import config
+import microburst_ann.config as config
 
 
 class Load_SAMPEX_HILT:
@@ -24,9 +24,8 @@ class Load_SAMPEX_HILT:
         """
         self.load_date = load_date
         self.verbose = verbose
-        # If date is in string format, convert to a pd.Timestamp object
-        if isinstance(self.load_date, str):
-            self.load_date = pd.to_datetime(self.load_date)
+        # If date is in string or datetime format, convert to a date object
+        self.load_date = pd.to_datetime(self.load_date).date()
         
         # Figure out how to calculate the day of year (DOY)
         if isinstance(self.load_date, pd.Timestamp):
@@ -81,7 +80,7 @@ class Load_SAMPEX_HILT:
         zip file reference
         """
         if self.verbose:
-            print(f'Loading SAMPEX HILT data from {self.load_date.date()} from {path.name}')
+            print(f'Loading SAMPEX HILT data from {self.load_date} from {path.name}')
         self.hilt = pd.read_csv(path, sep=' ')
         return
 
@@ -96,7 +95,7 @@ class Load_SAMPEX_HILT:
             raise RuntimeError('The SAMPEX HITL data is not in order.')
         # Convert seconds of day to a datetime object.
         day_seconds_obj = pd.to_timedelta(self.hilt['Time'], unit='s')
-        self.hilt['Time'] = pd.Timestamp(self.load_date.date()) + day_seconds_obj
+        self.hilt['Time'] = pd.Timestamp(self.load_date) + day_seconds_obj
         if time_index:
             self.hilt.index = self.hilt['Time']
             del(self.hilt['Time'])
@@ -135,9 +134,8 @@ class Load_SAMPEX_Attitude:
         """
         self.load_date = load_date
         self.verbose = verbose
-        # If date is in string format, convert to a pd.Timestamp object
-        if isinstance(self.load_date, str):
-            self.load_date = pd.to_datetime(self.load_date)
+        # If date is in string or datetime format, convert to a date object
+        self.load_date = pd.to_datetime(self.load_date).date()
 
         # Figure out how to calculate the day of year (DOY)
         if isinstance(self.load_date, pd.Timestamp):
@@ -182,7 +180,7 @@ class Load_SAMPEX_Attitude:
         delited to conserve memory.
         """
         if self.verbose:
-            print(f'Loading SAMPEX attitude data from {self.load_date.date()} from'
+            print(f'Loading SAMPEX attitude data from {self.load_date} from'
                 f' {self.attitude_file.name}')
         # A default set of hard-coded list of columns to load
         if columns=='default':

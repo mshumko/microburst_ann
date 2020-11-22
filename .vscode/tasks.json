@@ -6,8 +6,7 @@
         {
             "label": "python3",
             "type": "shell",
-            "command": "${workspaceFolder}/env/bin/python3",
-            "args": ["${file}"],
+            "command": "python3 ${file}",
 
             "group": {
                 "kind": "build",
@@ -26,11 +25,7 @@
         {
             "label": "python3 interactive",
             "type": "shell",
-            "command": "${workspaceFolder}/env/bin/python3",
-            "args": [
-                "-i",
-                "${file}"
-            ],
+            "command": "python3 -i ${file}",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
