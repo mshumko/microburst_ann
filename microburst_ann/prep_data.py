@@ -6,16 +6,26 @@ are randomly picked from the SAMPEX data.
 
 Classes
 -------
-
+Copy_Microburst_Counts
+    For each good microburst in a given microburst catalog,
+    copy over the HILT counts within a time window and save
+    to a hdf5 file.
+Copy_Nonmicroburst_Counts
+    Look for time windows outside of a given microburst 
+    catalog, to randomly copy over the HILT counts and save
+    to a hdf5 file.
+Visualize_Microburst_Counts
+    Visualize the counts that were outputted by 
+    Copy_Microburst_Counts.
 """
 
 import pathlib
 
 import pandas as pd
-# import h5py
 
-from microburs_ann import config
-from microburs_ann.misc import load_hilt_data
+import microburs_ann.config as config
+import microburst_ann.misc.load_hilt_data as load_hilt_data
+
 
 class Copy_Microburst_Counts:
     def __init__(self, catalog_name, width_s=1):
