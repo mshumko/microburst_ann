@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "python3.8",
+            "label": "python3",
             "type": "shell",
             "command": "${workspaceFolder}/env/bin/python3",
             "args": ["${file}"],
@@ -24,7 +24,7 @@
             }
         },
         {
-            "label": "python3.8 interactive",
+            "label": "python3 interactive",
             "type": "shell",
             "command": "${workspaceFolder}/env/bin/python3",
             "args": [

@@ -10,20 +10,20 @@ Copy_Microburst_Counts
     For each good microburst in a given microburst catalog,
     copy over the HILT counts within a time window and save
     to a hdf5 file.
-Copy_Nonmicroburst_Counts
+Copy_Non_Microburst_Counts
     Look for time windows outside of a given microburst 
     catalog, to randomly copy over the HILT counts and save
     to a hdf5 file.
-Visualize_Microburst_Counts
-    Visualize the counts that were outputted by 
-    Copy_Microburst_Counts.
+Visualize_Counts
+    Visualize the counts that were outputted Copy_Microburst_Counts
+    and Copy_Non_Microburst_Counts.
 """
 
 import pathlib
 
 import pandas as pd
 
-import microburs_ann.config as config
+import microburst_ann.config as config
 import microburst_ann.misc.load_hilt_data as load_hilt_data
 
 
@@ -48,10 +48,20 @@ class Copy_Microburst_Counts:
 
         """
         self.catalog_name = catalog_name
-        self.catalog_path = pathlib.Path(config.PROJECT_DIR, 'data', 
-                                        self.catalog_name)
+        self._load_catalog()
         self.width_dp = int(width_s/(2*20E-3))
         return
+
+    def _load_catalog(self):
+        """
+        Loads the catalog using self.catalog_name.
+        """
+        self.catalog_path = pathlib.Path(config.PROJECT_DIR, 'data', 
+                                        self.catalog_name)
+        self.catalog = pd.read_csv(self.catalog_path, index_col=0, 
+                                    parse_dates=True)                                
+        return
+
 
 if __name__ == "__main__":
     cp = Copy_Microburst_Counts('microburst_catalog_01.csv')
