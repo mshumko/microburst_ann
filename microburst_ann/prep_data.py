@@ -103,13 +103,23 @@ class Copy_Microburst_Counts:
     def save_counts(self, save_name):
         """
         After you run the loop() method, this method saves the 
-        self.microburst_counts to an hdf5 file.
+        self.microburst_counts to a csv or a hdf5 file, depending 
+        on the save_name file extension.
+
+        Parameters
+        ----------
+        save_name: str or pathlib.Path
+            The name of the save file with the extension csv or h5. 
+            No other save formats are currently supported.
         """
         save_path = pathlib.Path(config.PROJECT_DIR, 'data', save_name)
         if save_path.suffix == '.csv':
             self.microburst_counts.to_csv(save_path)
         elif save_path.suffix == '.h5':
             self.microburst_counts.to_hdf(save_path, mode='w', key='counts')
+        else:
+            raise ValueError(f'save_path={save_name} must have a csv or h5 extension.')
+        return
 
     def _load_catalog(self):
         """
