@@ -116,14 +116,27 @@ class Copy_Microburst_Counts:
         if save_path.suffix == '.csv':
             self.microburst_counts.to_csv(save_path)
         elif save_path.suffix == '.h5':
-            self.microburst_counts.to_hdf(save_path, mode='w', key='counts')
+            self.microburst_counts.to_hdf(save_path, 
+                                        mode='w', key='counts')
         else:
-            raise ValueError(f'save_path={save_name} must have a csv or h5 extension.')
+            raise ValueError(
+                f'save_path={save_name} must have a csv or h5 extension.'
+                )
         return
 
     def _load_catalog(self):
         """
-        Loads the catalog using self.catalog_name.
+        Loads the catalog using self.catalog_name and adds a 
+        self.catalog object attribute, a pd.DataFrame
+        object that contains the microburst detections.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None, 
         """
         self.catalog_path = pathlib.Path(config.PROJECT_DIR, 'data', 
                                         self.catalog_name)
