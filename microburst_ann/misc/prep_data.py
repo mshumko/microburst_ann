@@ -12,8 +12,13 @@ Copy_Microburst_Counts
     to a hdf5 file.
 Copy_Non_Microburst_Counts
     Look for time windows outside of a given microburst 
-    catalog, to randomly copy over the HILT counts and save
+    catalog, and randomly copy over the HILT counts and save
     to a hdf5 file.
+Merge_Counts
+    This class uses the output from the above two classes to
+    generate a csv file of microbursts and non-microbursts,
+    randomly shuffled, and with a label (non-microburst=0, 
+    microburst=1).
 Visualize_Counts
     Visualize the counts that were outputted Copy_Microburst_Counts
     and Copy_Non_Microburst_Counts.
@@ -29,12 +34,37 @@ import microburst_ann.misc.load_hilt_data as load_hilt_data
 
 
 class Copy_Microburst_Counts:
+    """
+    For each good microburst in the catalog_name catalog, copy the 
+    20 ms HILT counts data into a microburst dataset with times and
+    counts.
+
+    Methods
+    -------
+    loop
+        Loop over the catalog times, get the HILT data, and save
+        to self.microburst_counts pd.DataFrame.
+    save_counts
+        Saves the resulting HILT counts to a hdf5 file.
+    _load_catalog
+        Internal method to load the csv microburst catalog, assign a
+        time index, and parse the time column into pd.Timestamp objects.
+
+    Attributes
+    ----------
+    catalog: pd.DataFrame
+        The microburst catalog used to copy over the counts. Generated
+        by __init__.
+    microburst_counts: pd.DataFrame
+        Contains the HILT counts, centered on the microburst time, with 
+        the same time index as catalog.
+    hilt_obj: object
+        The HILT object that contains the time-resolved HILT data, used 
+        from load_hilt_data.
+    """
+
     def __init__(self, catalog_name, width_s=1, min_r2=0.9):
         """
-        For each good microburst in the catalog_name catalog, copy the 
-        20 ms HILT counts data into a microburst dataset with times and
-        counts.
-
         Parameters
         ----------
         catalog_name: str
@@ -46,14 +76,6 @@ class Copy_Microburst_Counts:
         min_r2: float, optional
             The minimum R^2 value to filter the data by. This makes sure
             that the microbursts are well-shaped.
-
-        Methods
-        -------
-        loop
-            Loop over the catalog times, get the HILT data, and save
-            to self.microburst_counts pd.DataFrame.
-        save_counts
-            Saves the resulting HILT counts to a hdf5 file.
         """
         self.catalog_name = catalog_name
         self.min_r2 = min_r2
@@ -150,9 +172,85 @@ class Copy_Microburst_Counts:
         self.catalog = self.catalog[self.catalog.r2 >= self.min_r2]
         return
 
+class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
+    """
+    Look for time windows outside of a given microburst 
+    catalog, and randomly copy over the HILT counts and save
+    to a hdf5 file. 
+    
+    In this case, the r^2 filter is not applied to the microburst
+    catalog, to avoid accidently adding microbursts, as misshaped
+    as they are, to the non-microburst counts dataset.
 
-if __name__ == "__main__":
-    cp = Copy_Microburst_Counts('microburst_catalog_01.csv')
-    cp.loop()
-    # cp.save_counts('microburst_counts.h5')
-    cp.save_counts('microburst_counts.csv')
+    Methods
+    -------
+    loop
+        Loop over the HILT data, pick N random times from M random days,
+        check that the random time does not encompass a microburst, and
+        save to a self.nonmicroburst_counts pd.DataFrame.
+    save_counts
+        Saves the resulting HILT counts to a hdf5 file.
+    _load_catalog (inhertied)
+        Internal method to load the csv microburst catalog, assign a
+        time index, and parse the time column into pd.Timestamp objects.
+
+    Attributes
+    ----------
+    catalog: pd.DataFrame
+        The microburst catalog used to check that the non-microburst 
+        counts are not near a detected microburst. This catalog is loaded
+        by the inhertied __init__.
+    nonmicroburst_counts: pd.DataFrame
+        Contains the random HILT counts.
+    hilt_obj: object
+        The HILT object that contains the time-resolved HILT data, used 
+        from load_hilt_data.
+    """
+
+    def __init__(self, catalog_name, width_s=1):
+        """
+        Calls __init__ from the Copy_Microburst_Counts class and calls 
+        the method to generate the same number of non-microburst times
+        as microburst times.
+        """
+        super().__init__(catalog_name, width_s=width_s)
+        return 
+
+    def pick_random_dates(self, N=None):
+        """
+        Pick N random times to copy the HILT data from
+
+        Parameters
+        ----------
+        N: int
+            The number of random dates (with replacement) to pick. If None,
+            will assume N==self.catalog.shape[0]
+        """
+        if N is None:
+            N = self.catalog.shape[0]
+
+        return
+        
+    def save_counts(self, save_name):
+        """
+        After you run the loop() method, this method saves the 
+        self.nonmicroburst_counts to a csv or a hdf5 file, depending 
+        on the save_name file extension.
+
+        Parameters
+        ----------
+        save_name: str or pathlib.Path
+            The name of the save file with the extension csv or h5. 
+            No other save formats are currently supported.
+        """
+        save_path = pathlib.Path(config.PROJECT_DIR, 'data', save_name)
+        if save_path.suffix == '.csv':
+            self.nonmicroburst_counts.to_csv(save_path)
+        elif save_path.suffix == '.h5':
+            self.nonmicroburst_counts.to_hdf(save_path, 
+                                        mode='w', key='counts')
+        else:
+            raise ValueError(
+                f'save_path={save_name} must have a csv or h5 extension.'
+                )
+        return
