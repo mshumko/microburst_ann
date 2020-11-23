@@ -267,6 +267,7 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
                     raise
             
             time_threshold_not_met = True
+            n_tries = 0
             while time_threshold_not_met:
                 # Pick random times from self.hilt_obj.hilt_resolved DataFrame until one time is 
                 random_row = self.hilt_obj.hilt_resolved.sample()
@@ -277,8 +278,13 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
                 # satisfied.
                 if np.min(np.abs(numerical_catalog_dates-numeric_row_time)) > near_thresh_s/86400:
                     time_threshold_not_met = False
+                
+                # Check if we're headed for an infinite while loop and exit if uncessefully 
+                # tried to pick a random time 10 tries.
+                if n_tries >= 10:
+                    break
+                n_tries += 1
 
-            
             # Find the numerical index corresponding to the random time.
             idx = np.where(self.hilt_obj.hilt_resolved.index == random_row.index[0])[0][0]
             # Copy the HILT counts
