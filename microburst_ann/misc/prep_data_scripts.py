@@ -24,7 +24,7 @@ run_microburst_counts = False
 run_non_microburst_counts = True
 
 
-if run_microburst_flag:
+if run_microburst_counts:
     # Save the microburst counts to a csv file and optionally to
     # a hdf5 file (hdf5 data compression appears to be very crappy).
     cp = prep_data.Copy_Microburst_Counts('microburst_catalog_01.csv')

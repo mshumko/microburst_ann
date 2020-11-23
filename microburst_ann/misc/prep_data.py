@@ -28,6 +28,7 @@ import pathlib
 
 import pandas as pd
 import numpy as np
+from matplotlib.dates import date2num
 
 import microburst_ann.config as config
 import microburst_ann.misc.load_hilt_data as load_hilt_data
@@ -176,7 +177,12 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
     """
     Look for time windows outside of a given microburst 
     catalog, and randomly copy over the HILT counts and save
-    to a hdf5 file. 
+    to a hdf5 file. The same number of random times are chosen
+    as there are microburst in each day in the microburst
+    catalog: for example if there are 5 microbursts on one day,
+    there also will be 5 non-microburst times picked from that
+    day as well. There may be better approaches, but this one 
+    seems simplest.
     
     In this case, the r^2 filter is not applied to the microburst
     catalog, to avoid accidently adding microbursts, as misshaped
@@ -216,21 +222,74 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
         super().__init__(catalog_name, width_s=width_s)
         return 
 
-    def pick_random_dates(self, N=None):
+    def loop(self, near_thresh_s=1):
         """
-        Pick N random times to copy the HILT data from
+        Loops over microburst detections. For each detection, pick a 
+        corresponding random time from that day and save it if it was not
+        near a microburst.
 
         Parameters
         ----------
-        N: int
-            The number of random dates (with replacement) to pick. If None,
-            will assume N==self.catalog.shape[0]
-        """
-        if N is None:
-            N = self.catalog.shape[0]
+        None
 
+        Returns
+        -------
+        self.nonmicroburst_counts: pd.DataFrame
+            A dataframe containing the HILT count 2d array with a time index. 
+            The 2d array is of shape nMicrobursts x nWindowPoints.
+        """
+        # Create empty arrays.
+        prev_date = pd.Timestamp.min.date()
+        self.nonmicroburst_counts = pd.DataFrame(
+            data=-1*np.ones((self.catalog.shape[0], self.width_dp*2), dtype=int),
+            )
+        self.nonmicroburst_times = pd.DataFrame(
+            data={
+                'dateTime':np.full(self.catalog.shape[0], pd.Timestamp.min.date(), 
+                                                        dtype=object)
+            })
+        # Save this as a reference to speed up the calculation.
+        numerical_catalog_dates = date2num(self.catalog.index)
+
+        # Loop over every microburst detection and find random HILT times that do
+        # not coincide with microbursts.
+        for i, t in enumerate(self.catalog.index):
+            # Load the HILT data if that day is not loaded yet.
+            if t.date() != prev_date:
+                print(f'Loading HILT data from {t.date()}')
+                prev_date = t.date()
+                try:
+                    self.hilt_obj = load_hilt_data.Load_SAMPEX_HILT(t)
+                    self.hilt_obj.resolve_counts_state4()
+                except RuntimeError as err:
+                    if 'The SAMPEX HITL data is not in order.' in str(err):
+                        continue
+                    raise
+            
+            time_threshold_not_met = True
+            while time_threshold_not_met:
+                # Pick random times from self.hilt_obj.hilt_resolved DataFrame until one time is 
+                random_row = self.hilt_obj.hilt_resolved.sample()
+                numeric_row_time = date2num(random_row.index)
+                # If the minimum time difference between the randomly picked time and the
+                # microburst times is greater than near_thresh_s, we will keep this time.
+                # Otherwise, draw anothe random time and try again until the condition is 
+                # satisfied.
+                if np.min(np.abs(numerical_catalog_dates-numeric_row_time)) > near_thresh_s/86400:
+                    time_threshold_not_met = False
+
+            
+            # Find the numerical index corresponding to the random time.
+            print(random_row.index[0])
+            idx = np.where(self.hilt_obj.hilt_resolved.index == random_row.index[0])[0][0]
+            # Copy the HILT counts
+            hilt_counts = self.hilt_obj.hilt_resolved.iloc[
+                idx-self.width_dp:idx+self.width_dp
+                ].counts.to_numpy().astype(int)
+            self.nonmicroburst_counts.iloc[i, :] = hilt_counts
+            self.nonmicroburst_times.iloc[i, 0] = random_row.index
         return
-        
+
     def save_counts(self, save_name):
         """
         After you run the loop() method, this method saves the 
