@@ -154,5 +154,5 @@ class Copy_Microburst_Counts:
 if __name__ == "__main__":
     cp = Copy_Microburst_Counts('microburst_catalog_01.csv')
     cp.loop()
-    cp.save_counts('microburst_counts.h5')
+    # cp.save_counts('microburst_counts.h5')
     cp.save_counts('microburst_counts.csv')
