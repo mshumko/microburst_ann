@@ -280,14 +280,13 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
 
             
             # Find the numerical index corresponding to the random time.
-            print(random_row.index[0])
             idx = np.where(self.hilt_obj.hilt_resolved.index == random_row.index[0])[0][0]
             # Copy the HILT counts
             hilt_counts = self.hilt_obj.hilt_resolved.iloc[
                 idx-self.width_dp:idx+self.width_dp
                 ].counts.to_numpy().astype(int)
             self.nonmicroburst_counts.iloc[i, :] = hilt_counts
-            self.nonmicroburst_times.iloc[i, 0] = random_row.index
+            self.nonmicroburst_times.iloc[i, 0] = random_row.index[0]
         return
 
     def save_counts(self, save_name):
@@ -302,6 +301,8 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
             The name of the save file with the extension csv or h5. 
             No other save formats are currently supported.
         """
+        self.nonmicroburst_counts.index = self.nonmicroburst_times['dateTime']
+        # Set the index.
         save_path = pathlib.Path(config.PROJECT_DIR, 'data', save_name)
         if save_path.suffix == '.csv':
             self.nonmicroburst_counts.to_csv(save_path)

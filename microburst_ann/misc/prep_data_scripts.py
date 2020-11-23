@@ -34,6 +34,7 @@ if run_microburst_counts:
 
 if run_non_microburst_counts:
     cp = prep_data.Copy_Nonmicroburst_Counts('microburst_catalog_01.csv')
-    cp.loop()
-    cp.save_counts('nonmicroburst_counts.csv')
-
+    try:
+        cp.loop()
+    finally:
+        cp.save_counts('nonmicroburst_counts.csv')
