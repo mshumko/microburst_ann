@@ -88,8 +88,13 @@ class Copy_Microburst_Counts:
             if t.date() != prev_date:
                 print(f'Loading HILT data from {t.date()}')
                 prev_date = t.date()
-                self.hilt_obj = load_hilt_data.Load_SAMPEX_HILT(t)
-                self.hilt_obj.resolve_counts_state4()
+                try:
+                    self.hilt_obj = load_hilt_data.Load_SAMPEX_HILT(t)
+                    self.hilt_obj.resolve_counts_state4()
+                except RuntimeError as err:
+                    if 'The SAMPEX HITL data is not in order.' in str(err):
+                        continue
+                    raise
 
             # Find the numerical index corresponding to t.
             idx = np.where(self.hilt_obj.hilt_resolved.index == t)[0][0]
