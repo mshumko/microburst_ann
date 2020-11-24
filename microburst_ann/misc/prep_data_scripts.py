@@ -16,12 +16,14 @@ import time
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 from microburst_ann.misc import prep_data
 
 # Boolean flags
 run_microburst_counts = False
-run_non_microburst_counts = True
+run_non_microburst_counts = False
+run_visualize_microbursts = True
 
 
 if run_microburst_counts:
@@ -38,3 +40,8 @@ if run_non_microburst_counts:
         cp.loop()
     finally:
         cp.save_counts('nonmicroburst_counts.csv')
+
+if run_visualize_microbursts:
+    v = prep_data.Visualize_Counts('nonmicroburst_counts.csv')
+    v.plot(seed=None)
+    plt.show()

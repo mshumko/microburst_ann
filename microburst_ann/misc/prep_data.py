@@ -25,6 +25,7 @@ Visualize_Counts
 """
 
 import pathlib
+import itertools
 
 import pandas as pd
 import numpy as np
@@ -353,15 +354,29 @@ class Visualize_Counts:
         """
         fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
 
-        if label == 0:
-            plot_str = 'non-microburst'
-        elif label == 1:
-            plot_str = 'microbursts'
-        elif label is None:
-            assert 'label' in self.hilt_data.keys(), (
-                'The HILT data has no label column.')
+        # if label == 0:
+        #     plot_str = 'non-microburst'
+        # elif label == 1:
+        #     plot_str = 'microbursts'
+        # elif label is None:
+        #     assert 'label' in self.hilt_data.keys(), (
+        #         'The HILT data has no label column.')
 
-        return
+        random_rows = self.hilt_data.sample(nrows*ncols, random_state=seed)
+        plt_index = 0
+
+        for ax_row in ax:
+            for ax_i in ax_row:
+                ax_i.plot(random_rows.iloc[plt_index, :], c='k')
+                print(f'{random_rows.iloc[plt_index, :].index}')
+                ax_i.text(0, 1, f'{random_rows.iloc[plt_index, :].index[0]}', 
+                        va='top', ha='right', transform=ax_i.transAxes, fontsize=5)
+                plt_index+=1
+                ax_i.axis('off')
+
+        plt.suptitle(f'HILT data from\n{self.data_file_name}')
+        plt.tight_layout()
+        return ax
 
     def _load_data(self):
         """
@@ -376,8 +391,8 @@ class Visualize_Counts:
         -------
         None, add a hilt_data attribute pd.DataFrame to the object.
         """
-        self.catalog_path = pathlib.Path(config.PROJECT_DIR, 'data', 
+        self.data_path = pathlib.Path(config.PROJECT_DIR, 'data', 
                                         self.data_file_name)
-        self.hilt_data = pd.read_csv(self.hilt_data, index_col=0, 
+        self.hilt_data = pd.read_csv(self.data_path, index_col=0, 
                                     parse_dates=True)       
         return
