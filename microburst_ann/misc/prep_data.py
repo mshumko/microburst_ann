@@ -28,6 +28,7 @@ import pathlib
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
 
 import microburst_ann.config as config
@@ -319,4 +320,64 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
             raise ValueError(
                 f'save_path={save_name} must have a csv or h5 extension.'
                 )
+        return
+
+
+class Visualize_Counts:
+    """
+    Given a csv file, visualize the microburst and nonmicroburst HILT
+    counts. If there 
+
+    Methods
+    -------
+    _load_data
+        Load the csv file containing the HILT microburst or nonmicroburst
+        counts in each row. 
+
+    Attributes
+    ----------
+    hilt_data: pd.DataFrame
+        The HILT microburst and/or nonmicroburst data.
+    """
+    def __init__(self, data_file_name):
+        """
+
+        """
+        self.data_file_name = data_file_name
+        self._load_data()
+        return
+
+    def plot(self, nrows=5, ncols=5, seed=123, label=None):
+        """
+
+        """
+        fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
+
+        if label == 0:
+            plot_str = 'non-microburst'
+        elif label == 1:
+            plot_str = 'microbursts'
+        elif label is None:
+            assert 'label' in self.hilt_data.keys(), (
+                'The HILT data has no label column.')
+
+        return
+
+    def _load_data(self):
+        """
+        Loads the csv file containing a microburst or nonmicroburst
+        HILT data in each row.
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        None, add a hilt_data attribute pd.DataFrame to the object.
+        """
+        self.catalog_path = pathlib.Path(config.PROJECT_DIR, 'data', 
+                                        self.data_file_name)
+        self.hilt_data = pd.read_csv(self.hilt_data, index_col=0, 
+                                    parse_dates=True)       
         return
