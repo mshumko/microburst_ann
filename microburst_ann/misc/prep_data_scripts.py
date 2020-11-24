@@ -24,6 +24,7 @@ from microburst_ann.misc import prep_data
 run_microburst_counts = False
 run_non_microburst_counts = False
 run_visualize_microbursts = True
+run_visualize_nonmicrobursts = False
 
 
 if run_microburst_counts:
@@ -42,6 +43,11 @@ if run_non_microburst_counts:
         cp.save_counts('nonmicroburst_counts.csv')
 
 if run_visualize_microbursts:
+    v = prep_data.Visualize_Counts('microburst_counts.csv')
+    v.plot(seed=None)
+    plt.show()
+
+if run_visualize_nonmicrobursts:
     v = prep_data.Visualize_Counts('nonmicroburst_counts.csv')
     v.plot(seed=None)
     plt.show()

@@ -368,13 +368,16 @@ class Visualize_Counts:
         for ax_row in ax:
             for ax_i in ax_row:
                 ax_i.plot(random_rows.iloc[plt_index, :], c='k')
-                print(f'{random_rows.iloc[plt_index, :].index}')
-                ax_i.text(0, 1, f'{random_rows.iloc[plt_index, :].index[0]}', 
-                        va='top', ha='right', transform=ax_i.transAxes, fontsize=5)
+                ax_i.text(
+                    0, 1.1, 
+                    (f'{random_rows.index[plt_index].date()}\n'
+                    f'{random_rows.index[plt_index].time()}'), 
+                    va='top', ha='left', transform=ax_i.transAxes, fontsize=5
+                    )
                 plt_index+=1
                 ax_i.axis('off')
 
-        plt.suptitle(f'HILT data from\n{self.data_file_name}')
+        plt.suptitle(f'ANN Training Data from\n{self.data_file_name}')
         plt.tight_layout()
         return ax
 
