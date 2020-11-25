@@ -16,7 +16,7 @@ Copy_Non_Microburst_Counts
     to a hdf5 file.
 Merge_Counts
     This class uses the output from the above two classes to
-    generate a csv file of microbursts and non-microbursts,
+    generate random microburst and non-microburst data,
     randomly shuffled, and with a label (non-microburst=0, 
     microburst=1).
 Visualize_Counts
@@ -322,6 +322,77 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
                 f'save_path={save_name} must have a csv or h5 extension.'
                 )
         return
+
+
+class Merge_Counts:
+    """
+    This class uses the output from the above two classes to
+    generate random microburst and non-microburst data,
+    randomly shuffled, and with a label (non-microburst=0, 
+    microburst=1).
+
+    Methods
+    -------
+
+    Attributes
+    ----------
+    """
+
+    def __init__(self, microburst_name, nonmicroburst_name, 
+                split=[0.5, 0.25]):
+        """
+        Loads the microburst and nonmicroburst datasets, and adds the 
+        train/test/validate datasets fractions to the class attributes.
+        """
+        self.microburst_name = microburst_name
+        self.nonmicroburst_name = nonmicroburst_name
+        # Load the microburst and nonmicroburst HILT data.
+        self.microbursts = self._load_data(self.microburst_name)
+        self.nonmicrobursts = self._load_data(self.nonmicroburst_name)
+
+        self.split = split
+        assert len(split) == 2, ("len(split) != 2, can't split into train, "
+                                "test, and validation datasets.")
+        return
+
+    def split_merge_data(self):
+        """
+        This method oversees the following three data operations:
+            1. split the individual microburst and nonmicroburst csv files into 
+            the train, test, and validation data sets,
+            2. appends a class label (microbursts=1, nonmicrobursts=0), 
+            3. for each train, test, and validate category, merge the microburst
+            and nonmicroburst datasets.
+        """
+        return
+
+    def train_batch(batch_size):
+        """
+
+        """
+        return
+
+    def _load_data(self, file_name):
+        """
+        Loads the csv file containing a microburst or nonmicroburst
+        HILT data in each row.
+        
+        Parameters
+        ----------
+        file_name: str or pathlib.Path
+            The file name of the HILT data to load.
+        
+        Returns
+        -------
+        df: pd.DataFrame
+            A DataFrame contaning the HILT counts of microbursts and
+            nonmicrobursts, with a time index.
+        """
+        data_path = pathlib.Path(config.PROJECT_DIR, 'data', 
+                                        file_name)
+        df = pd.read_csv(data_path, index_col=0, 
+                                    parse_dates=True)       
+        return df
 
 
 class Visualize_Counts:
