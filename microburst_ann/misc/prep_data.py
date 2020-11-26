@@ -380,15 +380,15 @@ class Prep_Counts:
         self._normalize()
         return
 
-    def save_data(self):
+    def save(self):
         """
         Saves the self.train, self.test, and self.validate pd.DataFrames to
         a csv file in the project_dir/data filder
         """
         data_path = pathlib.Path(config.PROJECT_DIR, 'data')
         self.train.to_csv(data_path / 'train.csv', index=False)
-        self.test.to_csv(data_path / 'test.csv', index=False)
-        self.validate.to_csv(data_path / 'validate.csv', index=False)
+        # self.test.to_csv(data_path / 'test.csv', index=False)
+        # self.validate.to_csv(data_path / 'validate.csv', index=False)
         return
 
     def _split_data(self):
@@ -412,16 +412,16 @@ class Prep_Counts:
         microbursts = microbursts.drop(index=self.microburst_train.index) 
         self.microburst_train = self.microburst_train.reset_index()
 
-        # Same for microburst testing dataset.
-        self.microburst_test = microbursts.sample(frac=self.split[1], 
-                                            replace=False, axis=0)
-        microbursts = microbursts.drop(index=self.microburst_test.index)
-        self.microburst_test = self.microburst_test.reset_index()
+        # # Same for microburst testing dataset.
+        # self.microburst_test = microbursts.sample(frac=self.split[1], 
+        #                                     replace=False, axis=0)
+        # microbursts = microbursts.drop(index=self.microburst_test.index)
+        # self.microburst_test = self.microburst_test.reset_index()
 
-        # And validation dataset.
-        self.microburst_validate = microbursts.sample(frac=1-sum(self.split), 
-                                            replace=False, axis=0)
-        self.microburst_validate = self.microburst_validate.reset_index()
+        # # And validation dataset.
+        # self.microburst_validate = microbursts.sample(frac=1-sum(self.split), 
+        #                                     replace=False, axis=0)
+        # self.microburst_validate = self.microburst_validate.reset_index()
         
         ### Non-Microbursts ###
         # The training dataset.
@@ -432,16 +432,16 @@ class Prep_Counts:
         nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_train.index) 
         self.nonmicroburst_train = self.nonmicroburst_train.reset_index()
 
-        # Same for microburst testing dataset.
-        self.nonmicroburst_test = nonmicrobursts.sample(frac=self.split[1], 
-                                            replace=False, axis=0)
-        nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_test.index) 
-        self.nonmicroburst_test = self.nonmicroburst_test.reset_index()
+        # # Same for microburst testing dataset.
+        # self.nonmicroburst_test = nonmicrobursts.sample(frac=self.split[1], 
+        #                                     replace=False, axis=0)
+        # nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_test.index) 
+        # self.nonmicroburst_test = self.nonmicroburst_test.reset_index()
 
-        # And validation dataset.
-        self.nonmicroburst_validate = nonmicrobursts.sample(frac=1-sum(self.split), 
-                                            replace=False, axis=0)
-        self.nonmicroburst_validate = self.nonmicroburst_validate.reset_index()                                            
+        # # And validation dataset.
+        # self.nonmicroburst_validate = nonmicrobursts.sample(frac=1-sum(self.split), 
+        #                                     replace=False, axis=0)
+        # self.nonmicroburst_validate = self.nonmicroburst_validate.reset_index()                                            
         return
 
     def _concat_shuffle(self):
@@ -456,19 +456,19 @@ class Prep_Counts:
         self.train = self.train.sample(frac=1, replace=False)
         self.train = self.train.reset_index()
         
-        self.test = pd.concat(
-            [self.nonmicroburst_test, self.microburst_test], 
-            ignore_index=True
-            )
-        self.test = self.test.sample(frac=1, replace=False)
-        self.test = self.test.reset_index()
+        # self.test = pd.concat(
+        #     [self.nonmicroburst_test, self.microburst_test], 
+        #     ignore_index=True
+        #     )
+        # self.test = self.test.sample(frac=1, replace=False)
+        # self.test = self.test.reset_index()
 
-        self.validate = pd.concat(
-            [self.nonmicroburst_validate, self.microburst_validate], 
-            ignore_index=True
-            )
-        self.validate = self.validate.sample(frac=1, replace=False)
-        self.validate = self.validate.reset_index()
+        # self.validate = pd.concat(
+        #     [self.nonmicroburst_validate, self.microburst_validate], 
+        #     ignore_index=True
+        #     )
+        # self.validate = self.validate.sample(frac=1, replace=False)
+        # self.validate = self.validate.reset_index()
         return
 
     def _normalize(self):
@@ -479,11 +479,11 @@ class Prep_Counts:
         self.train = self.train - self.train.mean(axis=1, numeric_only=True)
         self.train = self.train/self.train.std(axis=1, numeric_only=True)
 
-        self.test = self.test - self.test.mean(axis=1, numeric_only=True)
-        self.test = self.test/self.test.std(axis=1, numeric_only=True)
+        # self.test = self.test - self.test.mean(axis=1, numeric_only=True)
+        # self.test = self.test/self.test.std(axis=1, numeric_only=True)
 
-        self.validate = self.validate - self.validate.mean(axis=1, numeric_only=True)
-        self.validate = self.validate/self.validate.std(axis=1, numeric_only=True)
+        # self.validate = self.validate - self.validate.mean(axis=1, numeric_only=True)
+        # self.validate = self.validate/self.validate.std(axis=1, numeric_only=True)
         return
 
     def _load_data(self, file_name):

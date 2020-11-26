@@ -59,3 +59,4 @@ if run_prep_counts:
         split=[0.5, 0.25]
         )
     p.prep_counts()
+    p.save()
