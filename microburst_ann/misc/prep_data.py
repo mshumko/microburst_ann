@@ -355,24 +355,29 @@ class Merge_Counts:
                                 "test, and validation datasets.")
         return
 
-    def split_merge_data(self):
+    def split_merge_normalize_data(self):
         """
-        This method oversees the following three data operations:
+        This method oversees the following four data operations:
             1. split the individual microburst and nonmicroburst csv files into 
             the train, test, and validation data sets,
             2. appends a class label (microbursts=1, nonmicrobursts=0), 
             3. for each train, test, and validate category, merge the microburst
             and nonmicroburst datasets.
+            4. Normalize the HILT data by subtracting the mean and dividing by the
+            standard deviation.
         """
 
         # Step 1 & 2: split self.microburst and self.nonmicroburst into 
         # train/test/validate pd.DataFrames and append the label.
         self._split_data()
 
-        # Step 3: For each of train, test, and validate datasets, merge
-        # the non-microburst and microburst datasets into one train, one test
-        # and one validation pd.DataFrame.
-        
+        # Step 3: For each of train, test, and validate datasets, concatenate
+        # and shuffle the non-microburst and microburst datasets into one 
+        # train, one test and one validation pd.DataFrame.
+        self._concat_shuffle()
+
+        # Step 4: Normalize by the mean and standard deviation.
+        self._normalize()
         return
 
     def _split_data(self):
@@ -393,16 +398,19 @@ class Merge_Counts:
                                             replace=False, axis=0)
         # Drop the training microbursts from the microbursts df so 
         # the same rows won't be picked again.
-        microbursts.drop(index=self.microburst_train.index, inplace=True) 
+        microbursts = microbursts.drop(index=self.microburst_train.index) 
+        self.microburst_train = self.microburst_train.reset_index()
 
         # Same for microburst testing dataset.
         self.microburst_test = microbursts.sample(frac=self.split[1], 
                                             replace=False, axis=0)
-        microbursts.drop(index=self.microburst_test.index, inplace=True) 
+        microbursts = microbursts.drop(index=self.microburst_test.index)
+        self.microburst_test = self.microburst_test.reset_index()
 
         # And validation dataset.
         self.microburst_validate = microbursts.sample(frac=1-sum(self.split), 
                                             replace=False, axis=0)
+        self.microburst_validate = self.microburst_validate.reset_index()
         
         ### Non-Microbursts ###
         # The training dataset.
@@ -410,17 +418,48 @@ class Merge_Counts:
                                             replace=False, axis=0)
         # Drop the training microbursts from the microbursts df so 
         # the same rows won't be picked again.
-        nonmicrobursts.drop(index=self.nonmicroburst_train.index, inplace=True) 
+        nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_train.index) 
+        self.nonmicroburst_train = self.nonmicroburst_train.reset_index()
 
         # Same for microburst testing dataset.
         self.nonmicroburst_test = nonmicrobursts.sample(frac=self.split[1], 
                                             replace=False, axis=0)
-        nonmicrobursts.drop(index=self.nonmicroburst_test.index, inplace=True) 
+        nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_test.index) 
+        self.nonmicroburst_test = self.nonmicroburst_test.reset_index()
 
         # And validation dataset.
         self.nonmicroburst_validate = nonmicrobursts.sample(frac=1-sum(self.split), 
                                             replace=False, axis=0)
+        self.nonmicroburst_validate = self.nonmicroburst_validate.reset_index()                                            
         return
+
+    def _concat_shuffle(self):
+        """
+        Concatenate and shuffle the microburst and nonmicroburst
+        train, test, and validate DataFrames.
+        """
+        self.train = pd.concat(
+            [self.nonmicroburst_train, self.microburst_train], 
+            ignore_index=True
+            )
+        self.train = self.train.sample(frac=1, replace=False)
+        self.train = self.train.reset_index()
+        
+        self.test = pd.concat(
+            [self.nonmicroburst_test, self.microburst_test], 
+            ignore_index=True
+            )
+        self.test = self.test.sample(frac=1, replace=False)
+        self.test = self.test.reset_index()
+
+        self.validate = pd.concat(
+            [self.nonmicroburst_validate, self.microburst_validate], 
+            ignore_index=True
+            )
+        self.validate = self.validate.sample(frac=1, replace=False)
+        self.validate = self.validate.reset_index()
+        return
+
 
     def train_batch(self, batch_size):
         """
@@ -428,10 +467,19 @@ class Merge_Counts:
         """
         return
 
-    def normalize(self):
+    def _normalize(self):
         """
+        Normalize the train, test, and validate pd.DataFrames by
+        subtracting off the mean and dividing by the standard deviation.
+        """
+        self.train = self.train - self.train.mean(axis=1)
+        self.train = self.train/self.train.std(axis=1)
 
-        """
+        self.test = self.test - self.test.mean(axis=1)
+        self.test = self.test/self.test.std(axis=1)
+
+        self.validate = self.validate - self.validate.mean(axis=1)
+        self.validate = self.validate/self.validate.std(axis=1)
         return
 
     def _load_data(self, file_name):
