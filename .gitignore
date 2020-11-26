@@ -3,3 +3,6 @@ env/
 config.py
 .DS_Store
 microburst_ann.egg-info/
+microburst_ann/data/test.csv
+microburst_ann/data/train.csv
+microburst_ann/data/validate.csv
