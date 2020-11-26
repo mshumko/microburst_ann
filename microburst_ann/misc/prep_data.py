@@ -32,8 +32,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
 
-import microburst_ann.config as config
-import microburst_ann.misc.load_hilt_data as load_hilt_data
+#import microburst_ann.config as config
+#import microburst_ann.misc.load_hilt_data as load_hilt_data
 
 
 class Copy_Microburst_Counts:
@@ -350,6 +350,11 @@ class Prep_Counts:
         self.microbursts = self._load_data(self.microburst_name)
         self.nonmicrobursts = self._load_data(self.nonmicroburst_name)
 
+        # Even out the number of rows in the two datasets.
+        min_rows = min(self.microbursts.shape[0], self.nonmicrobursts.shape[0])
+        self.microbursts = self.microbursts.iloc[:min_rows, :]
+        self.nonmicrobursts = self.nonmicrobursts.iloc[:min_rows, :]
+
         self.split = split
         assert len(split) == 2, ("len(split) != 2, can't split into train, "
                                 "test, and validation datasets.")
@@ -385,10 +390,12 @@ class Prep_Counts:
         Saves the self.train, self.test, and self.validate pd.DataFrames to
         a csv file in the project_dir/data filder
         """
-        data_path = pathlib.Path(config.PROJECT_DIR, 'data')
-        self.train.to_csv(data_path / 'train.csv', index=False)
-        # self.test.to_csv(data_path / 'test.csv', index=False)
-        # self.validate.to_csv(data_path / 'validate.csv', index=False)
+        d = '/Users/mshumko/Documents/research/sampex/microburst_ann/microburst_ann/'
+        # data_path = pathlib.Path(config.PROJECT_DIR, 'data')
+        data_path = pathlib.Path(d, 'data')
+        self.train.to_csv(data_path / 'train.csv')
+        self.test.to_csv(data_path / 'test.csv')
+        self.validate.to_csv(data_path / 'validate.csv')
         return
 
     def _split_data(self):
@@ -409,19 +416,19 @@ class Prep_Counts:
                                             replace=False, axis=0)
         # Drop the training microbursts from the microbursts df so 
         # the same rows won't be picked again.
-        microbursts = microbursts.drop(index=self.microburst_train.index) 
-        self.microburst_train = self.microburst_train.reset_index()
+        microbursts.drop(index=self.microburst_train.index, inplace=True) 
+        self.microburst_train.reset_index(inplace=True)
 
-        # # Same for microburst testing dataset.
-        # self.microburst_test = microbursts.sample(frac=self.split[1], 
-        #                                     replace=False, axis=0)
-        # microbursts = microbursts.drop(index=self.microburst_test.index)
-        # self.microburst_test = self.microburst_test.reset_index()
+        # Same for microburst testing dataset.
+        self.microburst_test = microbursts.sample(frac=self.split[1], 
+                                            replace=False, axis=0)
+        microbursts = microbursts.drop(index=self.microburst_test.index)
+        self.microburst_test = self.microburst_test.reset_index()
 
-        # # And validation dataset.
-        # self.microburst_validate = microbursts.sample(frac=1-sum(self.split), 
-        #                                     replace=False, axis=0)
-        # self.microburst_validate = self.microburst_validate.reset_index()
+        # And validation dataset.
+        self.microburst_validate = microbursts.sample(frac=1-sum(self.split), 
+                                            replace=False, axis=0)
+        self.microburst_validate = self.microburst_validate.reset_index()
         
         ### Non-Microbursts ###
         # The training dataset.
@@ -429,19 +436,19 @@ class Prep_Counts:
                                             replace=False, axis=0)
         # Drop the training microbursts from the microbursts df so 
         # the same rows won't be picked again.
-        nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_train.index) 
-        self.nonmicroburst_train = self.nonmicroburst_train.reset_index()
+        nonmicrobursts.drop(index=self.nonmicroburst_train.index, inplace=True) 
+        self.nonmicroburst_train.reset_index(inplace=True)
 
-        # # Same for microburst testing dataset.
-        # self.nonmicroburst_test = nonmicrobursts.sample(frac=self.split[1], 
-        #                                     replace=False, axis=0)
-        # nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_test.index) 
-        # self.nonmicroburst_test = self.nonmicroburst_test.reset_index()
+        # Same for microburst testing dataset.
+        self.nonmicroburst_test = nonmicrobursts.sample(frac=self.split[1], 
+                                            replace=False, axis=0)
+        nonmicrobursts = nonmicrobursts.drop(index=self.nonmicroburst_test.index) 
+        self.nonmicroburst_test = self.nonmicroburst_test.reset_index()
 
-        # # And validation dataset.
-        # self.nonmicroburst_validate = nonmicrobursts.sample(frac=1-sum(self.split), 
-        #                                     replace=False, axis=0)
-        # self.nonmicroburst_validate = self.nonmicroburst_validate.reset_index()                                            
+        # And validation dataset.
+        self.nonmicroburst_validate = nonmicrobursts.sample(frac=1-sum(self.split), 
+                                            replace=False, axis=0)
+        self.nonmicroburst_validate = self.nonmicroburst_validate.reset_index()                                            
         return
 
     def _concat_shuffle(self):
@@ -454,21 +461,24 @@ class Prep_Counts:
             ignore_index=True
             )
         self.train = self.train.sample(frac=1, replace=False)
-        self.train = self.train.reset_index()
+        self.train.index = self.train['dateTime']
+        del(self.train['dateTime'])
         
-        # self.test = pd.concat(
-        #     [self.nonmicroburst_test, self.microburst_test], 
-        #     ignore_index=True
-        #     )
-        # self.test = self.test.sample(frac=1, replace=False)
-        # self.test = self.test.reset_index()
+        self.test = pd.concat(
+            [self.nonmicroburst_test, self.microburst_test], 
+            ignore_index=True
+            )
+        self.test = self.test.sample(frac=1, replace=False)
+        self.test.index = self.test['dateTime']
+        del(self.test['dateTime'])
 
-        # self.validate = pd.concat(
-        #     [self.nonmicroburst_validate, self.microburst_validate], 
-        #     ignore_index=True
-        #     )
-        # self.validate = self.validate.sample(frac=1, replace=False)
-        # self.validate = self.validate.reset_index()
+        self.validate = pd.concat(
+            [self.nonmicroburst_validate, self.microburst_validate], 
+            ignore_index=True
+            )
+        self.validate = self.validate.sample(frac=1, replace=False)
+        self.validate.index = self.validate['dateTime']
+        del(self.validate['dateTime'])
         return
 
     def _normalize(self):
@@ -476,14 +486,20 @@ class Prep_Counts:
         Normalize the train, test, and validate pd.DataFrames by
         subtracting off the mean and dividing by the standard deviation.
         """
-        self.train = self.train - self.train.mean(axis=1, numeric_only=True)
-        self.train = self.train/self.train.std(axis=1, numeric_only=True)
+        train_mean = self.train.loc[:, '0':'49'].mean(axis=1)
+        train_std = self.train.loc[:, '0':'49'].std(axis=1)
+        self.train.loc[:, '0':'49'] = self.train.loc[:, '0':'49'].sub(train_mean, axis=0)
+        self.train.loc[:, '0':'49'] = self.train.loc[:, '0':'49'].divide(train_std, axis=0)
 
-        # self.test = self.test - self.test.mean(axis=1, numeric_only=True)
-        # self.test = self.test/self.test.std(axis=1, numeric_only=True)
+        test_mean = self.test.loc[:, '0':'49'].mean(axis=1)
+        test_std = self.test.loc[:, '0':'49'].std(axis=1)
+        self.test.loc[:, '0':'49'] = self.test.loc[:, '0':'49'].sub(test_mean, axis=0)
+        self.test.loc[:, '0':'49'] = self.test.loc[:, '0':'49'].divide(test_std, axis=0)
 
-        # self.validate = self.validate - self.validate.mean(axis=1, numeric_only=True)
-        # self.validate = self.validate/self.validate.std(axis=1, numeric_only=True)
+        validate_mean = self.validate.loc[:, '0':'49'].mean(axis=1)
+        validate_std = self.validate.loc[:, '0':'49'].std(axis=1)
+        self.validate.loc[:, '0':'49'] = self.validate.loc[:, '0':'49'].sub(validate_mean, axis=0)
+        self.validate.loc[:, '0':'49'] = self.validate.loc[:, '0':'49'].divide(validate_std, axis=0)
         return
 
     def _load_data(self, file_name):
@@ -502,7 +518,9 @@ class Prep_Counts:
             A DataFrame contaning the HILT counts of microbursts and
             nonmicrobursts, with a time index.
         """
-        data_path = pathlib.Path(config.PROJECT_DIR, 'data', 
+        # data_path = pathlib.Path(config.PROJECT_DIR, 'data', 
+        #                                 file_name)
+        data_path = pathlib.Path('/Users/mshumko/Documents/research/sampex/microburst_ann/microburst_ann/', 'data', 
                                         file_name)
         df = pd.read_csv(data_path, index_col=0, 
                                     parse_dates=True)       

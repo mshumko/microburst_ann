@@ -18,7 +18,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from microburst_ann.misc import prep_data
+# from microburst_ann.misc import prep_data
+import prep_data
 
 # Boolean flags
 run_microburst_counts = False
