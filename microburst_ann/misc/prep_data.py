@@ -14,7 +14,7 @@ Copy_Non_Microburst_Counts
     Look for time windows outside of a given microburst 
     catalog, and randomly copy over the HILT counts and save
     to a hdf5 file.
-Merge_Counts
+Prep_Counts
     This class uses the output from the above two classes to
     generate random microburst and non-microburst data,
     randomly shuffled, and with a label (non-microburst=0, 
@@ -324,11 +324,11 @@ class Copy_Nonmicroburst_Counts(Copy_Microburst_Counts):
         return
 
 
-class Merge_Counts:
+class Prep_Counts:
     """
     This class uses the output from the above two classes to
     generate random microburst and non-microburst data,
-    randomly shuffled, and with a label (non-microburst=0, 
+    shuffled, and with a label (non-microburst=0, 
     microburst=1).
 
     Methods
@@ -355,7 +355,7 @@ class Merge_Counts:
                                 "test, and validation datasets.")
         return
 
-    def split_merge_normalize_data(self):
+    def prep_counts(self):
         """
         This method oversees the following four data operations:
             1. split the individual microburst and nonmicroburst csv files into 
@@ -378,6 +378,17 @@ class Merge_Counts:
 
         # Step 4: Normalize by the mean and standard deviation.
         self._normalize()
+        return
+
+    def save_data(self):
+        """
+        Saves the self.train, self.test, and self.validate pd.DataFrames to
+        a csv file in the project_dir/data filder
+        """
+        data_path = pathlib.Path(config.PROJECT_DIR, 'data')
+        self.train.to_csv(data_path / 'train.csv', index=False)
+        self.test.to_csv(data_path / 'test.csv', index=False)
+        self.validate.to_csv(data_path / 'validate.csv', index=False)
         return
 
     def _split_data(self):
@@ -460,26 +471,19 @@ class Merge_Counts:
         self.validate = self.validate.reset_index()
         return
 
-
-    def train_batch(self, batch_size):
-        """
-
-        """
-        return
-
     def _normalize(self):
         """
         Normalize the train, test, and validate pd.DataFrames by
         subtracting off the mean and dividing by the standard deviation.
         """
-        self.train = self.train - self.train.mean(axis=1)
-        self.train = self.train/self.train.std(axis=1)
+        self.train = self.train - self.train.mean(axis=1, numeric_only=True)
+        self.train = self.train/self.train.std(axis=1, numeric_only=True)
 
-        self.test = self.test - self.test.mean(axis=1)
-        self.test = self.test/self.test.std(axis=1)
+        self.test = self.test - self.test.mean(axis=1, numeric_only=True)
+        self.test = self.test/self.test.std(axis=1, numeric_only=True)
 
-        self.validate = self.validate - self.validate.mean(axis=1)
-        self.validate = self.validate/self.validate.std(axis=1)
+        self.validate = self.validate - self.validate.mean(axis=1, numeric_only=True)
+        self.validate = self.validate/self.validate.std(axis=1, numeric_only=True)
         return
 
     def _load_data(self, file_name):
