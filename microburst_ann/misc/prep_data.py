@@ -364,9 +364,71 @@ class Merge_Counts:
             3. for each train, test, and validate category, merge the microburst
             and nonmicroburst datasets.
         """
+
+        # Step 1 & 2: split self.microburst and self.nonmicroburst into 
+        # train/test/validate pd.DataFrames and append the label.
+        self._split_data()
+
+        # Step 3: For each of train, test, and validate datasets, merge
+        # the non-microburst and microburst datasets into one train, one test
+        # and one validation pd.DataFrame.
+        
         return
 
-    def train_batch(batch_size):
+    def _split_data(self):
+        """
+        split self.microburst and self.nonmicroburst into 
+        train/test/validate pd.DataFrames and append the microburst or
+        nonmicroburst label column.
+        """
+        microbursts = self.microbursts.copy()
+        nonmicrobursts = self.nonmicrobursts.copy()
+        # Add the labels.
+        microbursts['label'] = 1
+        nonmicrobursts['label'] = 0
+
+        ### Microbursts ###
+        # The training dataset.
+        self.microburst_train = microbursts.sample(frac=self.split[0], 
+                                            replace=False, axis=0)
+        # Drop the training microbursts from the microbursts df so 
+        # the same rows won't be picked again.
+        microbursts.drop(index=self.microburst_train.index, inplace=True) 
+
+        # Same for microburst testing dataset.
+        self.microburst_test = microbursts.sample(frac=self.split[1], 
+                                            replace=False, axis=0)
+        microbursts.drop(index=self.microburst_test.index, inplace=True) 
+
+        # And validation dataset.
+        self.microburst_validate = microbursts.sample(frac=1-sum(self.split), 
+                                            replace=False, axis=0)
+        
+        ### Non-Microbursts ###
+        # The training dataset.
+        self.nonmicroburst_train = nonmicrobursts.sample(frac=self.split[0], 
+                                            replace=False, axis=0)
+        # Drop the training microbursts from the microbursts df so 
+        # the same rows won't be picked again.
+        nonmicrobursts.drop(index=self.nonmicroburst_train.index, inplace=True) 
+
+        # Same for microburst testing dataset.
+        self.nonmicroburst_test = nonmicrobursts.sample(frac=self.split[1], 
+                                            replace=False, axis=0)
+        nonmicrobursts.drop(index=self.nonmicroburst_test.index, inplace=True) 
+
+        # And validation dataset.
+        self.nonmicroburst_validate = nonmicrobursts.sample(frac=1-sum(self.split), 
+                                            replace=False, axis=0)
+        return
+
+    def train_batch(self, batch_size):
+        """
+
+        """
+        return
+
+    def normalize(self):
         """
 
         """
