@@ -1,4 +1,6 @@
 import tensorflow as tf
+import pandas as pd
+
 
 # Load and normalize the data
 

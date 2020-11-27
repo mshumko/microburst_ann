@@ -32,8 +32,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.dates import date2num
 
-#import microburst_ann.config as config
-#import microburst_ann.misc.load_hilt_data as load_hilt_data
+import microburst_ann.config as config
+import microburst_ann.misc.load_hilt_data as load_hilt_data
 
 
 class Copy_Microburst_Counts:
@@ -390,9 +390,7 @@ class Prep_Counts:
         Saves the self.train, self.test, and self.validate pd.DataFrames to
         a csv file in the project_dir/data filder
         """
-        d = '/Users/mshumko/Documents/research/sampex/microburst_ann/microburst_ann/'
-        # data_path = pathlib.Path(config.PROJECT_DIR, 'data')
-        data_path = pathlib.Path(d, 'data')
+        data_path = pathlib.Path(config.PROJECT_DIR, 'data')
         self.train.to_csv(data_path / 'train.csv')
         self.test.to_csv(data_path / 'test.csv')
         self.validate.to_csv(data_path / 'validate.csv')
@@ -518,9 +516,7 @@ class Prep_Counts:
             A DataFrame contaning the HILT counts of microbursts and
             nonmicrobursts, with a time index.
         """
-        # data_path = pathlib.Path(config.PROJECT_DIR, 'data', 
-        #                                 file_name)
-        data_path = pathlib.Path('/Users/mshumko/Documents/research/sampex/microburst_ann/microburst_ann/', 'data', 
+        data_path = pathlib.Path(config.PROJECT_DIR, 'data', 
                                         file_name)
         df = pd.read_csv(data_path, index_col=0, 
                                     parse_dates=True)       
