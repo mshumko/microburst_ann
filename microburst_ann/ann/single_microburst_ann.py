@@ -48,6 +48,6 @@ print(model.summary())
 
 print(model(train_df.iloc[0].to_numpy().reshape((1, 50))))
 
-model.fit(shuffled_train_dataset, epochs=3)
+history = model.fit(shuffled_train_dataset, epochs=3)
 
 print(model.evaluate(test_df.to_numpy(), test_labels, verbose=2))
