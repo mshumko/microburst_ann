@@ -7,6 +7,7 @@ import pathlib
 import tensorflow as tf
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 import microburst_ann.config as config
 
@@ -37,17 +38,31 @@ model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(50,)),
   tf.keras.layers.Dense(10, activation='relu'),
   tf.keras.layers.Dropout(0.2),
-  tf.keras.layers.Dense(1),
-  tf.keras.layers.Softmax(),
+  tf.keras.layers.Dense(1, activation='sigmoid'),
 ])
 
-model.compile(optimizer='adam',
+model.compile(optimizer='sgd',
             loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
             metrics=['accuracy'])
 print(model.summary())
 
 print(model(train_df.iloc[0].to_numpy().reshape((1, 50))))
 
-history = model.fit(shuffled_train_dataset, epochs=3)
+history = model.fit(shuffled_train_dataset, 
+                    validation_data=(test_df.to_numpy(), test_labels), 
+                    epochs=3)
 
-print(model.evaluate(test_df.to_numpy(), test_labels, verbose=2))
+# i = 10; print(model(train_df.iloc[i].to_numpy().reshape((1, 50))), train_labels.iloc[i])
+
+# print(model.evaluate(test_df.to_numpy(), test_labels, verbose=2))
+
+n_correct=0
+for i in range(test_df.shape[0]):
+    if round(model(test_df.iloc[i].to_numpy().reshape((1, 50))).numpy()[0][0]) == test_labels.iloc[i]:
+        n_correct += 1
+print(f'n_correct={n_correct}, n_correct/n_total={n_correct/test_df.shape[0]}')
+
+pd.DataFrame(history.history).plot(figsize=(8, 5))
+plt.grid(True)
+plt.gca().set_ylim(0, 1) # set the vertical range to [0-1]
+plt.show()
