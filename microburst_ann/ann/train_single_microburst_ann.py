@@ -32,36 +32,50 @@ test_dataset = tf.data.Dataset.from_tensor_slices(
     )
 shuffled_train_dataset = train_dataset.shuffle(train_df.shape[0]).batch(1)
 
+def create_model():
+    """ 
+    Specify the ANN model.
+    """
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Flatten(input_shape=(50,)),
+        tf.keras.layers.Dense(25, activation='relu'),
+        tf.keras.layers.Dense(10, activation='relu'),
+        tf.keras.layers.Dropout(0.2),
+        tf.keras.layers.Dense(1, activation='sigmoid'),
+    ])
 
-# # Model
-model = tf.keras.models.Sequential([
-  tf.keras.layers.Flatten(input_shape=(50,)),
-  tf.keras.layers.Dense(25, activation='relu'),
-  tf.keras.layers.Dense(10, activation='relu'),
-  tf.keras.layers.Dropout(0.2),
-  tf.keras.layers.Dense(1, activation='sigmoid'),
-])
+    model.compile(optimizer='adam',
+                loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+                metrics=['accuracy'])
+    return model
 
-model.compile(optimizer='adam',
-            loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-            metrics=['accuracy'])
+model = create_model()
 print(model.summary())
 
-# print(model(train_df.iloc[0].to_numpy().reshape((1, 50))))
+# Set up the checkpoints
+cp_path = config.PROJECT_DIR / 'ann' / 'model' / 'model.cp'
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=cp_path,
+                                                 save_weights_only=True,
+                                                 verbose=1)
 
 history = model.fit(shuffled_train_dataset, 
                     validation_data=(test_df.to_numpy(), test_labels), 
-                    epochs=3)
+                    epochs=3,
+                    callbacks=[cp_callback])
 
-# i = 10; print(model(train_df.iloc[i].to_numpy().reshape((1, 50))), train_labels.iloc[i])
+# Load the trained model from the checkpoint file.
+model2 = create_model()
+model2.load_weights(cp_path)
+print(model.evaluate(test_df.to_numpy(), test_labels, verbose=2))
 
-# print(model.evaluate(test_df.to_numpy(), test_labels, verbose=2))
-
+### Check which labels were correctly classified.
 # n_correct=0
 # for i in range(test_df.shape[0]):
 #     if round(model(test_df.iloc[i].to_numpy().reshape((1, 50))).numpy()[0][0]) == test_labels.iloc[i]:
 #         n_correct += 1
 # print(f'n_correct={n_correct}, n_correct/n_total={n_correct/test_df.shape[0]}')
+
+# i = 10; print(model(train_df.iloc[i].to_numpy().reshape((1, 50))), train_labels.iloc[i])
 
 pd.DataFrame(history.history).plot(figsize=(8, 5))
 plt.grid(True)
