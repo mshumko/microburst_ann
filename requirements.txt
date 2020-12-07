@@ -2,5 +2,8 @@ numpy == 1.18.5
 matplotlib >= 3.3.2
 pandas >= 1.0.0
 tensorflow==2.3.1
+scikit-learn==0.23.2
+progressbar2>=3.53.1
+ipympl>=0.5.8
 
 -e .
