@@ -29,28 +29,33 @@ time = '2000-01-01T00:00:00'
 lat_bins = np.arange(-90, 90, 5)
 lon_bins = np.arange(-180, 180, 5)
 
-tb = pd.DataFrame(
-    data=np.nan*np.ones((lat_bins.shape[0], lon_bins.shape[0])),
-    index=lat_bins, columns=lon_bins
-    )
+save_path = config.PROJECT_DIR / 'data' / 'electron_tb_1mev.csv'
 
-m = IRBEM.MagFields(kext='OPQ77')
+if not save_path.exists():
+    tb = pd.DataFrame(
+        data=np.nan*np.ones((lat_bins.shape[0], lon_bins.shape[0])),
+        index=lat_bins, columns=lon_bins
+        )
 
-for i, lat in enumerate(lat_bins):
-    for j, lon in enumerate(lon_bins):
-        X = {'time':time, 'x1':alt_km, 'x2':lat, 'x3':lon}
-        maginput = None
-        try:
-            tb.iloc[i,j] = m.bounce_period(X, maginput, E_kev)
-        except ValueError as err:
-            if (
-                ('This is an open field line!' == str(err)) or 
-                ('Mirror point below the ground!' in str(err))
-                ):
-                continue
-            raise
+    m = IRBEM.MagFields(kext='OPQ77')
 
-tb.to_csv(config.PROJECT_DIR / 'data' / 'electron_tb_1mev.csv')
+    for i, lat in enumerate(lat_bins):
+        for j, lon in enumerate(lon_bins):
+            X = {'time':time, 'x1':alt_km, 'x2':lat, 'x3':lon}
+            maginput = None
+            try:
+                tb.iloc[i,j] = m.bounce_period(X, maginput, E_kev)
+            except ValueError as err:
+                if (
+                    ('This is an open field line!' == str(err)) or 
+                    ('Mirror point below the ground!' in str(err))
+                    ):
+                    continue
+                raise
+
+    tb.to_csv(save_path)
+else:
+    tb = pd.read_csv(save_path, index_col=0)
 
 fig, ax = plt.subplots()
 p = ax.pcolormesh(lon_bins, lat_bins, tb.to_numpy())
