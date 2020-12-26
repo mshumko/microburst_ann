@@ -36,11 +36,11 @@ import make_bounce_packet
 
 ### Parameters ###
 cadence=0.02
-n_peaks=5
+n_peaks=8
 peak_period=0.5
 peak_fwhm=0.1
 packet_decay_time=1
-t0_offset=1.5
+t0_offset=5
 scale_microburst_counts=500
 
 y_intercept=100
@@ -54,7 +54,7 @@ peak_freq_thresh = 0.25
 peak_freq_range = [peak_freq*(1-peak_freq_thresh), peak_freq*(1+peak_freq_thresh)]
 
 ### Generate the microburst counts ###
-t = np.arange(0, 5, cadence)
+t = np.arange(0, 10, cadence)
 
 y, _ = make_bounce_packet.bounce_packet(t, n_peaks, peak_period, peak_fwhm, 
                     packet_decay_time, t0_offset=t0_offset)
