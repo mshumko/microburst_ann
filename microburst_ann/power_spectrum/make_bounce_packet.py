@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def bounce_packet(t, n_peaks, peak_period, peak_fwhm, packet_decay_time):
+def bounce_packet(t, n_peaks, peak_period, peak_fwhm, packet_decay_time,
+                t0_offset=None):
     """
     Create a bouncing packet microburst with n_peaks, separated 
     by peak_period, of width peak_fwhm, and the whole packet decays
@@ -28,6 +29,8 @@ def bounce_packet(t, n_peaks, peak_period, peak_fwhm, packet_decay_time):
     packet_decay_time: float
         The exponential decay time scale for the packet. The counts
         decrease by 1/e after packet_decay_time. 
+    t0_offset: float (optional)
+        The first peak time offset in time.  
 
     Returns
     -------
@@ -41,22 +44,24 @@ def bounce_packet(t, n_peaks, peak_period, peak_fwhm, packet_decay_time):
     """
     y = np.zeros_like(t)
 
+    if t0_offset is None:
+        t0_offset = 2*peak_fwhm
+
     # Create an array of peak times, starting from 2*peak_fwhm,
     # with each successive peak a peak_period away from the first.
-    t0_arr = [2*peak_fwhm+i*bounce_period for i in range(n_peaks)]
+    t0_arr = [t0_offset+i*peak_period for i in range(n_peaks)]
 
     # Iterate over the peak parameters and superpose each successive
     # Gaussian to y.
     for t0 in t0_arr:
         y += gaus(t, 1, t0, peak_fwhm/2.35482)
 
-    # Scale the whole packet by the packet_decay_time.
-    envelope = np.exp(-t/packet_decay_time)
+    # Scale the whole packet by a decaying exponent with a the 
+    # packet_decay_time argument.
+    envelope = np.exp(-(t-t0_offset)/packet_decay_time)
     y *= envelope
 
     # Normalize the max amplitude to 1.
-    envelope /= np.max(y)
-    y /= np.max(y) 
     return y, envelope
 
 def gaus(t, A, t0, sigma):
@@ -81,7 +86,6 @@ if __name__ == '__main__':
     t = np.arange(0, 3, 20E-3)
 
     y, exp = bounce_packet(t, 5, 0.25, 0.1, 1)
-
     plt.plot(t, y)
     plt.plot(t, exp)
     plt.show()
