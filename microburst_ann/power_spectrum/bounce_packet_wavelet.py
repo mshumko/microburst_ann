@@ -29,24 +29,25 @@ noise: bool
 import numpy as np
 import matplotlib.pyplot as plt
 # import scipy.fft
-# import scipy.signal
+import scipy.signal
 
 import wavelet_analysis
 import make_bounce_packet
 
 ### Parameters ###
 cadence=0.02
-n_peaks=8
+n_peaks=2
 peak_period=0.5
-peak_fwhm=0.1
+peak_fwhm=0.08
 packet_decay_time=1
 t0_offset=5
-scale_microburst_counts=500
+scale_microburst_counts=800
 
 y_intercept=100
-slope=10
+slope=100
 
 noise=True
+detrend=True
 
 # Calculate the peak frequency and +/- peak_freq_thresh around it.
 peak_freq = 1/peak_period
@@ -63,6 +64,9 @@ y += y_intercept + t*slope
 
 if noise:
     y = np.random.poisson(y)
+
+if detrend:
+    y = scipy.signal.detrend(y, type='linear')
 
 ### Calculate the wavelet power spectrum ###
 w = wavelet_analysis.WaveletDetector(y, t, cadence, 
