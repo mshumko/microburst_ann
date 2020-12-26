@@ -65,7 +65,9 @@ if noise:
     y = np.random.poisson(y)
 
 ### Calculate the wavelet power spectrum ###
-w = wavelet_analysis.WaveletDetector(y, t, cadence, mother='MORLET', dj=0.125, j1=50)
+w = wavelet_analysis.WaveletDetector(y, t, cadence, 
+    mother='MORLET', dj=0.125, j1=50,
+    wavelet_param=4*np.pi)
 w.waveletTransform()
 
 ### Make the plot ###
